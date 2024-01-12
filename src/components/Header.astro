@@ -1,0 +1,17 @@
+---
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<div class="navbar bg-primary text-primary-content">
+	<div class="navbar-start ml-10">
+		<img src="/logo.png" />
+	</div>
+	<div class="navbar-center">
+		<a class="btn btn-ghost text-xl">{title}</a>
+	</div>
+	<div class="navbar-end"></div>
+</div>
