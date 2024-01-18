@@ -1,17 +1,52 @@
 ---
 interface Props {
-	title: string;
+  title: string;
 }
 
 const { title } = Astro.props;
 ---
 
 <div class="navbar bg-primary text-primary-content">
-	<div class="navbar-start ml-10">
-		<img src="/logo.png" />
-	</div>
-	<div class="navbar-center">
-		<a class="btn btn-ghost text-xl">{title}</a>
-	</div>
-	<div class="navbar-end"></div>
+  <div class="navbar-start ml-10">
+    <img src="logo.png" />
+  </div>
+  <div class="navbar-center">
+    <a class="text-4xl">{title}</a>
+  </div>
+  <div class="navbar-end">
+    <button class="btn btn-square btn-error" id="deleteBtn"> 🗑</button>
+  </div>
 </div>
+
+<script>
+  // ------------------ Variables ------------------
+  const URL = "https://uja-sensor-dev-zgkd.1.ie-1.fl0.io";
+
+  document.getElementById("deleteBtn")?.addEventListener("click", deleteData);
+  // ------------------ Functions ------------------
+
+  function deleteData() {
+    let token = prompt(
+      "Introduce la contraseña de borrado",
+      "uja-sensor-delete"
+    );
+    if (token != null) {
+      deleteAll(token).then((res) => {
+        if (res) {
+          alert("✅ Data deleted");
+        } else {
+          alert("❌ Error");
+        }
+      });
+    }
+  }
+
+  async function deleteAll(key: string): Promise<boolean> {
+    return await fetch(`${URL}/measures`, {
+      method: "DELETE",
+      headers: {
+        Authorization: "Bearer " + key,
+      },
+    }).then((res) => res.status == 200);
+  }
+</script>

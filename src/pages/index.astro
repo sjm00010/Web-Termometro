@@ -4,99 +4,97 @@ import Layout from "../layouts/Layout.astro";
 ---
 
 <Layout title="UJA-SENSOR">
-	<Header title="UJA TEMP" />
-	<div class="card w-96 bg-neutral-content shadow-xl mx-auto my-10">
-		<div class="card-body text-info-content items-center text-center">
-			<u class="card-title" style="font-size: 30px;">Última medición</u>
-			<i>Esta medición solo contenpla los últimos 5 segundos</i>
-			<span class="countdown font-mono text-6xl">
-				<span id="count" style="--value: 0;"></span>°C
-			</span>
-		</div>
-	</div>
-	<div class="card w-3/4 bg-neutral-content shadow-xl p-5 mx-auto my-10">
-		<canvas id="chart"></canvas>
-	</div>
+  <Header title="UJA-TEMP" />
+  <div class="card w-96 bg-neutral-content shadow-xl mx-auto my-10">
+    <div class="card-body text-info-content items-center text-center">
+      <u class="card-title" style="font-size: 30px;">Última medición</u>
+      <i>Esta medición solo contenpla los últimos 5 segundos</i>
+      <span class="countdown font-mono text-6xl">
+        <span id="count" style="--value: 0;"></span>°C
+      </span>
+    </div>
+  </div>
+  <div class="card w-3/4 bg-neutral-content shadow-xl p-5 mx-auto my-10">
+    <canvas id="chart"></canvas>
+  </div>
 </Layout>
 
 <script>
-	// ------------------ Variables ------------------
-	const URL = "https://uja-sensor-dev-zgkd.1.ie-1.fl0.io";
-	const SCALES = {
-		seconds: "secs",
-		minutes: "mins",
-		hours: "hours",
-	} as const;
-	const ctx = document.getElementById("chart");
-	type Measure = {
-		date: string;
-		value: number;
-	};
-	const dates: string[] = [];
-	const measurements: number[] = [];
-	const data = {
-		labels: dates,
-		datasets: [
-			{
-				label: "Temperatura",
-				data: measurements,
-				fill: false,
-				borderColor: "rgb(0, 122, 192)",
-				tension: 0.1,
-			},
-		],
-	};
-	const config = {
-		type: "line",
-		data: data,
-	};
-	const chart = new Chart(ctx, config);
+  // ------------------ Variables ------------------
+  const URL = "https://uja-sensor-dev-zgkd.1.ie-1.fl0.io";
+  const SCALES = {
+    seconds: "secs",
+    minutes: "mins",
+    hours: "hours",
+  } as const;
+  const ctx = document.getElementById("chart");
+  type Measure = {
+    date: string;
+    value: number;
+  };
+  const dates: string[] = [];
+  const measurements: number[] = [];
+  const data = {
+    labels: dates,
+    datasets: [
+      {
+        label: "Temperatura",
+        data: measurements,
+        fill: false,
+        borderColor: "rgb(0, 122, 192)",
+        tension: 0.1,
+      },
+    ],
+  };
+  const config = {
+    type: "line",
+    data: data,
+  };
+  const chart = new Chart(ctx, config);
 
-	// ------------------ Functions ------------------
+  // ------------------ Functions ------------------
 
-	async function inicialize() {
-		await getData(10, SCALES.hours).then((data) => {
-			data.forEach((d) => {
-				dates.push(d.date);
-				measurements.push(d.value);
-			});
-		});
-		chart.update();
-	}
-	await inicialize();
+  async function inicialize() {
+    await getData(10, SCALES.hours).then((data) => {
+      data.forEach((d) => {
+        dates.push(d.date);
+        measurements.push(d.value);
+      });
+    });
+    chart.update();
+  }
+  await inicialize();
 
-	async function getData(value: number, scale: string): Promise<Measure[]> {
-		return await fetch(`${URL}/read/${value}/${scale}`)
-			.then((res) => res.json())
-			.then((data) => {
-				if (data.measures) {
-					return data.measures.map((d: Measure) => {
-						d.date = d.date.substring(14, 19);
-						return d;
-					});
-				}
-				return [];
-			});
-	}
+  async function getData(value: number, scale: string): Promise<Measure[]> {
+    return await fetch(`${URL}/read/${value}/${scale}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.measures) {
+          return data.measures.map((d: Measure) => {
+            d.date = d.date.substring(14, 19);
+            return d;
+          });
+        }
+        return [];
+      });
+  }
 
-	async function update() {
-		await getData(3, SCALES.seconds).then((data) => {
-			data.forEach((d) => {
-				dates.push(d.date);
-				dates.shift();
-				measurements.push(d.value);
-				measurements.shift();
-			});
-			(
-				document.getElementById("count") as HTMLElement
-			)?.style.setProperty(
-				"--value",
-				Math.round(measurements[measurements.length - 1]).toString(),
-			);
-		});
+  async function update() {
+    await getData(3, SCALES.seconds).then((data) => {
+      data.forEach((d) => {
+        dates.push(d.date);
+        dates.shift();
+        measurements.push(d.value);
+        measurements.shift();
+      });
+      (document.getElementById("count") as HTMLElement)?.style.setProperty(
+        "--value",
+        Math.round(measurements[measurements.length - 1]).toString()
+      );
+    });
 
-		chart.update();
-	}
-	setInterval(update, 3000);
+    chart.update();
+  }
+  setInterval(update, 3000);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
